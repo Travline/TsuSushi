@@ -3,46 +3,46 @@ package Public.User;
 import java.time.LocalDateTime;
 
 public class UserBaseModel {
-    private String user_id;
-    private String user_name;
-    private String user_role;
-    private Boolean user_status;
+    private String name;
+    private String code;
+    private String role;
+    private Boolean status;
     private LocalDateTime created;
     
     public UserBaseModel() {
         
     }
 
-    public String getUser_id() {
-        return user_id;
+    public String getCode() {
+        return code;
     }
 
-    public void setUser_id(String user_id) {
-        this.user_id = user_id;
+    public void setCode(String code) {
+        this.code = code;
     }
 
-    public String getUser_name() {
-        return user_name;
+    public String getName() {
+        return name;
     }
 
-    public void setUser_name(String user_name) {
-        this.user_name = user_name;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getUser_role() {
-        return user_role;
+    public String getRole() {
+        return role;
     }
 
-    public void setUser_role(String user_role) {
-        this.user_role = user_role;
+    public void setRole(String role) {
+        this.role = role;
     }
 
-    public Boolean getUser_status() {
-        return user_status;
+    public Boolean getStatus() {
+        return status;
     }
 
-    public void setUser_status(Boolean user_status) {
-        this.user_status = user_status;
+    public void setStatus(Boolean status) {
+        this.status = status;
     }
 
     public LocalDateTime getCreated() {
