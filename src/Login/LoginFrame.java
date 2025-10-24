@@ -1,6 +1,7 @@
 package Login;
 
 import Public.User.UserController;
+import Public.User.UserLoged;
 import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.UIManager;
 import java.sql.*;
@@ -136,6 +137,11 @@ public class LoginFrame extends javax.swing.JFrame {
         delBtn.setMaximumSize(new java.awt.Dimension(50, 50));
         delBtn.setMinimumSize(new java.awt.Dimension(50, 50));
         delBtn.setPreferredSize(new java.awt.Dimension(50, 50));
+        delBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                delBtnActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -218,17 +224,30 @@ public class LoginFrame extends javax.swing.JFrame {
         try {
             UserController controller = new UserController();
             if(!controller.login(codeField.getText().trim())) {
+                codeField.setForeground(new java.awt.Color(204, 0, 0));
                 return;
+            }        
+            switch (UserLoged.getInstance().getRole()) {
+                case "ADMIN": /*admin view*/;
+                case "MESA": 
+                    dispose();
+                    var space = new Space.SpaceFrame();
+                    space.setLocationRelativeTo(null);
+                    space.setVisible(true);
+                case "CAJA": /*caja view*/;
             }
-            
-            
-            
             
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
         }
         
     }//GEN-LAST:event_acceptBtnActionPerformed
+
+    private void delBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delBtnActionPerformed
+        codeField.setText("");
+        codeField.requestFocus();
+        codeField.setForeground(new java.awt.Color(0, 0, 0));
+    }//GEN-LAST:event_delBtnActionPerformed
 
     /**
      * @param args the command line arguments

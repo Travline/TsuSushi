@@ -8,7 +8,7 @@ public class UserRepository {
   public UserBaseModel findUser(String user_code) throws SQLException { 
         try (Connection conn = new ConnectionDB().connect()) {
             String query = "SELECT user_name, user_code, user_role, user_state, created "+
-                            "FROM users WHERE user_code = ? AND user_state = FALSE;"; 
+                            "FROM users WHERE user_code = ? AND user_state = TRUE;"; 
             PreparedStatement pst = conn.prepareStatement(query);
             pst.setString(1, user_code);
             ResultSet rs = pst.executeQuery();
