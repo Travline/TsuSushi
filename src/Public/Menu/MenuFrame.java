@@ -17,15 +17,15 @@ import javax.swing.JOptionPane;
  * @author polux
  */
 public class MenuFrame extends javax.swing.JFrame {
-    
+
     private DefaultListModel mode = new DefaultListModel();
     private FoodRepository foodRepository = new FoodRepository();
     private HashSet<String> foodList;
-    
+
     /**
      * Creates new form MenuFrame
      */
-    public MenuFrame(){
+    public MenuFrame() {
         initComponents();
         menuList.setModel(mode);
         try {
@@ -36,7 +36,7 @@ public class MenuFrame extends javax.swing.JFrame {
         } catch (SQLException sqle) {
             JOptionPane.showMessageDialog(null, sqle, "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
+
     }
 
     /**
@@ -71,6 +71,7 @@ public class MenuFrame extends javax.swing.JFrame {
             }
         });
 
+        menuList.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         menuList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 menuListMousePressed(evt);
@@ -121,7 +122,7 @@ public class MenuFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void searchingFoodFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchingFoodFieldActionPerformed
-        
+
     }//GEN-LAST:event_searchingFoodFieldActionPerformed
 
     private void searchingFoodFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_searchingFoodFieldKeyReleased
@@ -145,7 +146,7 @@ public class MenuFrame extends javax.swing.JFrame {
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, ex, "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
+
     }//GEN-LAST:event_menuListMousePressed
 
     /**
@@ -174,7 +175,7 @@ public class MenuFrame extends javax.swing.JFrame {
             java.util.logging.Logger.getLogger(MenuFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
-        
+
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {

@@ -9,7 +9,9 @@ public class OrderBaseModel {
     private String serving;
     private String food;
     private int cant;
-    private ArrayList<String> notes = new ArrayList<>();
+    private double price;
+    private double total;
+    private ArrayList<String> notes;
     private boolean order_state;
     private LocalDateTime created;
     
@@ -79,4 +81,22 @@ public class OrderBaseModel {
     public void setCreated(LocalDateTime created) {
         this.created = created;
     }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+    
+    
 }

@@ -9,8 +9,12 @@ import Public.Menu.FoodSelectedObserver;
 import Public.Menu.MenuFrame;
 import Public.User.UserLoged;
 import Space.SpaceSelected;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JOptionPane;
 
 /**
  *
@@ -25,23 +29,46 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
     private SpaceSelected space = SpaceSelected.getInstance();
     private UserLoged user = UserLoged.getInstance();
     private FoodSelected food = FoodSelected.getInstance();
+    private OrderController ordeController = new OrderController();
     
     /**
      * Creates new form OrdersFrame
      */
     public OrdersFrame() {
         initComponents();
-        /*this.currentProduct.setCant(1);
+        this.currentProduct.setCant(1);
         this.currentProduct.setCreated(LocalDateTime.now());
         this.currentProduct.setSpace_id(this.space.getSpace_id());
-        this.currentProduct.setServing(this.space.getServing());*/
+        this.currentProduct.setServing(this.space.getServing());
+        loadOrders();
+    }
+    
+    public void loadOrders() {
+        try {
+            String[] orders = ordeController.getOrders();
+            StringBuilder ords = new StringBuilder();
+            for (String order : orders) {
+                ords.append(order);
+            }
+            ordersTextArea.setText(ords.toString());
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, ex, "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     @Override
     public void foodSelectedStateListener(boolean newState){
         if (newState) {
+            if (food.getFood_name().equals("")) {
+                productField.setText(food.getFood_name());
+                priceField.setText("");
+                cantField.setText("");
+                totalField.setText("");
+            }
             productField.setText(food.getFood_name());
-            //this.currentProduct.set
+            priceField.setText(food.getPrice().toString());
+            cantField.setText("1");
+            totalField.setText(food.getPrice().toString());
         }
     }
     
@@ -67,7 +94,7 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
         totalField = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         noteField = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
+        addNote = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         notesTextArea = new javax.swing.JTextArea();
@@ -82,8 +109,11 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
         setMaximumSize(new java.awt.Dimension(1280, 720));
         setMinimumSize(new java.awt.Dimension(1280, 720));
 
+        ordersTextArea.setEditable(false);
         ordersTextArea.setColumns(20);
+        ordersTextArea.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         ordersTextArea.setRows(5);
+        ordersTextArea.setFocusable(false);
         jScrollPane1.setViewportView(ordersTextArea);
 
         openMenu.setText("Abrir Menu");
@@ -94,12 +124,36 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
         });
 
         productField.setEnabled(false);
+        productField.setFocusable(false);
 
         jLabel1.setText("Producto:");
 
         jLabel2.setText("Precio:");
 
+        priceField.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                priceFieldActionPerformed(evt);
+            }
+        });
+        priceField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                priceFieldKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                priceFieldKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                priceFieldKeyTyped(evt);
+            }
+        });
+
         jLabel3.setText("Cantidad:");
+
+        cantField.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                cantFieldKeyReleased(evt);
+            }
+        });
 
         jLabel4.setText("Total:");
 
@@ -111,12 +165,25 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
 
         jLabel5.setText("Notas:");
 
-        jButton1.setText("Agregar Nota");
+        addNote.setText("Agregar Nota");
+        addNote.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNoteActionPerformed(evt);
+            }
+        });
 
         jButton2.setText("<html><p style=\"text-align: center;\">Agregar a<br>Nueva Orden</p></html>");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
+        notesTextArea.setEditable(false);
         notesTextArea.setColumns(20);
+        notesTextArea.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         notesTextArea.setRows(5);
+        notesTextArea.setFocusable(false);
         jScrollPane2.setViewportView(notesTextArea);
 
         jLabel6.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
@@ -125,7 +192,7 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
 
         jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 15)); // NOI18N
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel7.setText("Nueva Orden");
+        jLabel7.setText("Notas de la orden");
 
         jButton3.setText("<html><p style=\"text-align: center\">Guardar Orden<br>e Imprimir</p></html>");
 
@@ -146,41 +213,40 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 57, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(openMenu, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(63, 63, 63)
+                        .addGap(69, 69, 69)
                         .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(63, 63, 63)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jScrollPane2)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(priceField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(61, 61, 61)
-                                .addComponent(jLabel3)
-                                .addGap(18, 18, 18)
-                                .addComponent(cantField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(61, 61, 61)
-                                .addComponent(jLabel4)
-                                .addGap(18, 18, 18)
-                                .addComponent(totalField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(productField)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(noteField, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jButton2)
-                            .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE)
-                            .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jScrollPane2)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(priceField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(61, 61, 61)
+                            .addComponent(jLabel3)
+                            .addGap(18, 18, 18)
+                            .addComponent(cantField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(61, 61, 61)
+                            .addComponent(jLabel4)
+                            .addGap(18, 18, 18)
+                            .addComponent(totalField, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(productField)
+                        .addGroup(layout.createSequentialGroup()
+                            .addComponent(noteField, javax.swing.GroupLayout.PREFERRED_SIZE, 380, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGap(18, 18, 18)
+                            .addComponent(addNote, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jButton2)
+                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, 140, Short.MAX_VALUE)
+                    .addComponent(jButton6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(50, 50, 50))
         );
         layout.setVerticalGroup(
@@ -191,11 +257,12 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
+                        .addGap(7, 7, 7)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(openMenu)
                             .addComponent(jButton4)
                             .addComponent(jButton5))
-                        .addGap(25, 25, 25)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -214,7 +281,7 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel5)
                             .addComponent(noteField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton1))
+                            .addComponent(addNote))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -240,6 +307,61 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
     private void totalFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_totalFieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_totalFieldActionPerformed
+
+    private void addNoteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addNoteActionPerformed
+        this.currentNotes.add(noteField.getText());
+        this.notesTextArea.setText(ordeController.buildNotes(currentNotes));
+        this.noteField.setText("");
+        this.noteField.requestFocus();
+    }//GEN-LAST:event_addNoteActionPerformed
+
+    private void priceFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_priceFieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_priceFieldActionPerformed
+
+    private void priceFieldKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_priceFieldKeyTyped
+        
+    }//GEN-LAST:event_priceFieldKeyTyped
+
+    private void priceFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_priceFieldKeyReleased
+        try {
+            double price = Double.parseDouble(this.priceField.getText());
+            int cant = Integer.parseInt(this.cantField.getText());
+            Double total = price * cant;
+            this.totalField.setText(total.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_priceFieldKeyReleased
+
+    private void priceFieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_priceFieldKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_priceFieldKeyPressed
+
+    private void cantFieldKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_cantFieldKeyReleased
+        try {
+            int cant = Integer.parseInt(this.cantField.getText());
+            double price = Double.parseDouble(this.priceField.getText());
+            Double total = price * cant;
+            this.totalField.setText(total.toString());
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_cantFieldKeyReleased
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        try {
+            boolean res = this.ordeController.addOrder(cantField.getText(), this.currentNotes, priceField.getText(), totalField.getText());
+            if (res) {
+                currentNotes.clear();
+                notesTextArea.setText("");
+                noteField.setText("");
+                loadOrders();
+            }
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -278,8 +400,8 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton addNote;
     private javax.swing.JTextField cantField;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
