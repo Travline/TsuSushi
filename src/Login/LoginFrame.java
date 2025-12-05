@@ -6,6 +6,10 @@ import com.formdev.flatlaf.FlatLightLaf;
 import javax.swing.UIManager;
 import java.sql.*;
 import javax.swing.JOptionPane;
+import Space.SpaceSelected;
+import Public.User.UserLoged;
+import Order.OrdersFrame;
+import Public.Menu.FoodSelected;
 
 /**
  *
@@ -227,14 +231,27 @@ public class LoginFrame extends javax.swing.JFrame {
                 codeField.setForeground(new java.awt.Color(204, 0, 0));
                 return;
             }        
-            switch (UserLoged.getInstance().getRole()) {
+            
+            UserLoged user = UserLoged.getInstance();
+            System.out.println(user.getRole());
+            switch (user.getRole()) {
                 case "ADMIN": /*admin view*/;
-                case "MESA": 
+                case "MESA":
                     dispose();
                     var space = new Space.SpaceFrame();
                     space.setLocationRelativeTo(null);
                     space.setVisible(true);
-                case "CAJA": /*caja view*/;
+                    break;
+                case "CAJA": dispose();
+                    SpaceSelected spaceS = SpaceSelected.getInstance();
+                    spaceS.setSpace_id("C0");
+                    spaceS.setServing(user.getName());
+                    OrdersFrame orderFrame = new OrdersFrame();
+                    orderFrame.setLocationRelativeTo(null);
+                    orderFrame.setVisible(true);
+                    FoodSelected food = FoodSelected.getInstance();
+                    food.addObserver(orderFrame);
+                    break;
             }
             
         } catch (Exception e) {

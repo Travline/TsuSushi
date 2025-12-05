@@ -42,4 +42,8 @@ public class OrderController {
     public String[] getOrders() throws SQLException{
         return orderRepository.getOrdersAsHtml();
     }
+    
+    public boolean cleanOrders() throws SQLException{
+        return orderRepository.updateOrders();
+    }
 }

@@ -4,16 +4,22 @@
  */
 package Order;
 
+import Login.LoginFrame;
 import Public.Menu.FoodSelected;
 import Public.Menu.FoodSelectedObserver;
 import Public.Menu.MenuFrame;
 import Public.User.UserLoged;
 import Space.SpaceSelected;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 /**
@@ -195,12 +201,27 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
         jLabel7.setText("Notas de la orden");
 
         jButton3.setText("<html><p style=\"text-align: center\">Guardar Orden<br>e Imprimir</p></html>");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
 
         jButton4.setText("Cerrar Sesión");
+        jButton4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton4ActionPerformed(evt);
+            }
+        });
 
         jButton5.setText("Salón");
 
         jButton6.setText("Pagar");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -362,6 +383,75 @@ public class OrdersFrame extends javax.swing.JFrame implements FoodSelectedObser
             JOptionPane.showMessageDialog(null, e, "Error", JOptionPane.ERROR_MESSAGE);
         }
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        printing();
+    }//GEN-LAST:event_jButton3ActionPerformed
+
+    private void printing() {
+        /*Print printView = new Print(person, getInitDate(), getFinalDate());
+        printView.setVisible(true);*/
+        PrinterJob job = PrinterJob.getPrinterJob();
+        
+        PrintableReport printableReport = new PrintableReport();
+        printableReport.setVisible(true);
+        JFrame preview = new JFrame("Vista previa del reporte");
+        preview.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        preview.add(printableReport);
+        preview.pack(); // ajusta tamaño al contenido
+        preview.setLocationRelativeTo(this);
+        preview.setVisible(true);
+        
+        // --- CONFIGURACIÓN DEL PAPEL ---
+        PageFormat pf = job.defaultPage();
+        Paper paper = pf.getPaper();
+
+        // Tamaño del papel (en puntos; 1 pulgada = 72 puntos)
+        double width = 80 / 25.4 * 72;   // 80 mm a puntos
+        double height = 3276 / 25.4 * 72; // 290 mm a puntos
+
+        paper.setSize(width, height);
+
+        // Área imprimible: todo el papel (sin márgenes)
+        paper.setImageableArea(0, 0, width, height);
+
+        pf.setPaper(paper);
+
+        // --- ASIGNAR EL PRINTABLE CON TU PAGEFORMAT ---
+        job.setPrintable(printableReport, pf);
+
+        // --- DIÁLOGO DE IMPRESIÓN ---
+        if (job.printDialog()) {
+            try {
+                job.setJobName("Reporte Ventas KyC");
+                job.print();
+            } catch (PrinterException ex) {
+                Logger.getLogger(Print.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            preview.dispose();
+            JOptionPane.showMessageDialog(this, "La impresión se canceló");
+        }
+    }
+    
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        try {
+            boolean res = ordeController.cleanOrders();
+            if (res) {
+                loadOrders();
+                printing();
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, ex, "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
+        dispose();
+        LoginFrame login = new LoginFrame();
+        login.setLocationRelativeTo(null);
+        login.setVisible(true);
+    }//GEN-LAST:event_jButton4ActionPerformed
 
     /**
      * @param args the command line arguments

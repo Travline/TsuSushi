@@ -57,8 +57,12 @@ public class OrderRepository {
     List<String> ordersHtml = new ArrayList<>();
     
     try (Connection conn = new ConnectionDB().connect()) {
-        String query = "SELECT serie, space_id, serving, food, cant, notes, total FROM orders;";
+        String query = "SELECT serie, space_id, serving, food, cant, notes, total FROM orders "+
+                        "WHERE serving = ? AND space_id = ? AND order_state = TRUE";
         PreparedStatement pst = conn.prepareStatement(query);
+        pst.setString(1, user.getName());
+        pst.setString(2, space.getSpace_id());
+        
         ResultSet rs = pst.executeQuery();
         
         while (rs.next()) {
@@ -82,11 +86,11 @@ public class OrderRepository {
             double total = rs.getDouble("total");
             
             // Formatear la cadena con saltos de línea para el textarea
-            String orderHtml = serie + " Mesa: " + space_id + "\n" +
-                               "Mesero: " + serving + "\n" +
+            String orderHtml = "Serie:"+serie + "                  Espacio: " + space_id + "\n" +
+                               "Atiende: " + serving + "\n" +
                                "[" + cant + "] " + food + "\n" +
                                "Notas:\n" + notes + 
-                               "Subtotal: " + total + "\n\n";
+                               "Subtotal: " + total + "\n---------------------------------------------------\n\n";
             
             // Añadir al arreglo de resultados
             ordersHtml.add(orderHtml);
@@ -97,5 +101,23 @@ public class OrderRepository {
     return ordersHtml.toArray(new String[0]);
 }
 
+    public boolean updateOrders() throws SQLException{
+        try (Connection conn = new ConnectionDB().connect()) {
+            String query = "UPDATE orders SET order_state = FALSE "+
+                            "WHERE order_id>=1 AND serving = ? AND space_id = ? AND order_state = TRUE";
+            
+            PreparedStatement pst = conn.prepareStatement(query);
+            
+            pst.setString(1, user.getName());
+            pst.setString(2, space.getSpace_id());
+            
+            pst.executeUpdate();
+
+            return true;
+        }  catch (SQLException e) {
+        System.err.println("Error al insertar datos: " + e.getMessage());
+        throw e; // Re-lanzar la excepción si es necesario
+    }
+    }
 
 }
